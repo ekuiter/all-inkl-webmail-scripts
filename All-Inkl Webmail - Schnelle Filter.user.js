@@ -104,7 +104,7 @@ function getCurrentMail() {
 }
 
 /*
- * Adds a button used to trigger the script's functionality
+ * Adds buttons used to trigger the script's functionality
  */
 function addUIElements() {
   runUntilTrue(function() {
@@ -138,7 +138,7 @@ function addUIElements() {
 /*
  * Fetches "from" for the current mail and "folder" / "folderName" from the select menu
  * folderInject (string): Overwrite the selected folder with another one
- * callback (function: Called on success with the context
+ * callback (function): Called on success with the context
  */
 function withContext(folderInject, callback) {
   if (currentMail.folder == null || currentMail.mail == null) {
