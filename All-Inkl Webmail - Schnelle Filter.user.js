@@ -16,7 +16,7 @@ var dependencies = ["aiwm", "aiwm.main", "aiwm.main.showMsg", "aiwm.core", "aiwm
 var $ = unsafeWindow.$, aiwm = unsafeWindow.aiwm;
 var currentMail = { folder: null, mail: null };
 var LOGGER = function(data) { console.log(data) };
-var TOAST = function(response) { toast(data.msg, "success", true) };
+var TOAST = function(data) { toast(data.msg, "success", true) };
 
 waitForDependencies();
 
