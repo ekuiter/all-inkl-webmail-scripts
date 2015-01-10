@@ -309,8 +309,8 @@ function helpButtonClick() {
                                    "  Dieser Button erstellt einen Filter zur gerade ausgewählten E-Mail, der neu eintreffende E-Mails des aktuellen Absenders" +
                                    "  automatisch in einen Ordner verschiebt. Dieser Ordner kann im Auswahlmenü links von den Buttons ausgewählt werden." +
                                    "</p><h3>&quot;... in neuen Ordner&quot;</h3><p>" +
-                                   "  Wie &quot;Immer verschieben&quot;, allerdings wird der Ordner nicht ausgewählt, sondern beim Anklicken in ein Dialogfenster" +
-                                   "  eingetragen. Der eingetragene Ordner wird dann angelegt. (Der Ordner darf Slashes enthalten, um Unterordner zu kennzeichnen:" +
+                                   "  Wie &quot;Immer verschieben&quot;, allerdings muss der Ordner nicht ausgewählt, sondern beim Anklicken in ein Dialogfenster" +
+                                   "  eingetragen werden. Der eingetragene Ordner wird dann angelegt. (Der Ordner darf Slashes enthalten, um Unterordner zu kennzeichnen:" +
                                    "  z.B. <em>Social/Facebook</em>, die Unterordner werden ggf. erstellt.)" +
                                    "</p><h3>&quot;Verschieben&quot;</h3><p>" +
                                    "  Verschiebt alle E-Mails des Absenders der gerade ausgewählten E-Mail (ohne einen Filter anzulegen) in den Ordner," +
