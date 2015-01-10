@@ -6,7 +6,9 @@
 // @author       Elias Kuiter
 // @match        https://webmail.all-inkl.com/index.php?WID=*
 // @grant        GM_xmlhttpRequest
-// @grant		 unsafeWindow
+// @grant        GM_getValue
+// @grant        GM_setValue
+// @grant        unsafeWindow
 // ==/UserScript==
 
 var apiPath = "/ajax.php";
@@ -109,19 +111,19 @@ function addUIElements() {
     return $("#mail-toolbar .item.btn.refresh").length > 0;
   }, function() {
     getFolders(function(folders) {
-      select = "<select id=\"folders\" style=\"float: left; margin: 9px 0 0 22px\">";
+      select = "<select id=\"filters-folders\" style=\"float: left; margin: 9px 0 0 20px\">";
       for (var i = 0; i < folders.length; i++)
         select += "<option value=\"" + folders[i].path + "\">" + folders[i].name + "</option>";
       $("#mail-toolbar .item.btn.refresh").after(select + "</select>");
-      $("select#folders").after("<div class=\"item btn\" id=\"move-to\" style=\"float: left; margin-left: 8px\">Immer verschieben</div>");
+      $("select#filters-folders").after("<div class=\"item btn\" id=\"filters-move-to\" style=\"float: left\">Immer verschieben</div>");
       // This...
       //unsafeWindow.document.getElementById("move-to").addEventListener("click", moveToButtonClick, false);
       // or this...
       //$("#move-to")[0].addEventListener("click", moveToButtonClick, false);
       // ...is supposed to work in Firefox/Greasemonkey. For some reason it doesn't. (In Chrome both works fine.) Solutions appreciated.
-      $("#move-to").click(moveToButtonClick);
-      $("#move-to").after("<input type=\"radio\" name=\"address\" value=\"mail\" id=\"mail\" style=\"float: left; margin: 12px 0 0 14px\" checked><label for=\"mail\" style=\"float: left; margin: 12px 0 0 6px\">nur diese Adresse</label>" +
-                          "<input type=\"radio\" name=\"address\" value=\"domain\" id=\"domain\" style=\"float: left; margin: 12px 0 0 14px\"><label for=\"domain\" style=\"float: left; margin: 12px 0 0 6px\">die ganze Domain</label>")
+      $("#filters-move-to").click(moveToButtonClick);
+      $("#filters-move-to").after("<div class=\"item btn pref\" id=\"filters-pref\" style=\"float: left\"><img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\"></div>");
+      $("#filters-pref").click(prefButtonClick);
     });
   });
 }
@@ -130,23 +132,82 @@ function addUIElements() {
  * Called whenever the "Move to ..." button is clicked
  */
 function moveToButtonClick() {
-  if (currentMail.folder == null || currentMail.mail == null) return;
-  function proceed(from) {
-    var folder = $("select#folders").val();
-    var onlyDomain = $("input:radio[name=address]:checked").val() == "domain";
+  if (currentMail.folder == null || currentMail.mail == null) {
+    toast("Es ist keine E-Mail ausgewählt.", "error", true);
+    return;
+  }
+  function proceed() {
+    var folder = $("select#filters-folders").val();
     if (!folder) return;
-    if (onlyDomain)
+    var folderName = $("select#filters-folders :selected").text();
+    var onlyDomain = GM_getValue("onlyDomain", false);
+    var useFromName = GM_getValue("useFromName", false);
+    var from = useFromName ? currentMail.fromName : currentMail.from;
+    if (!useFromName && onlyDomain)
       from = "@" + from.split("@")[1];
-    createMoveFilter(from, from, folder, TOAST);
+    createMoveFilter(from, from, folder, function(data) {
+      toast(data.msg == "Der Filter wurde gespeichert." ? "E-Mails von <strong>" + from + "</strong> werden ab sofort in <strong>" + folderName + "</strong> verschoben." : data.msg, "success", true);
+    });
   }
   if (currentMail.from) {
-    proceed(currentMail.from);
+    proceed();
   } else {
     getMailInfo(currentMail.folder, currentMail.mail, function(data) {
       currentMail.from = data.from;
-      proceed(currentMail.from);
+      currentMail.fromName = data.from_name;
+      proceed();
     });
   }
+}
+
+/*
+ * Called whenever the "Preferences" button is clicked
+ */
+function prefButtonClick() {
+  var onlyDomain = GM_getValue("onlyDomain", false);
+  var useFromName = GM_getValue("useFromName", false);
+  var prefWindow = window.open("", "filters_pref", "width=500,height=400,resizable=yes");
+  $(prefWindow.document.head).html("<style>" +
+                                   "  * { font-family: Arial, sans-serif; } input[type=radio] { margin-right: 8px; }" +
+                                   "</style>");
+  $(prefWindow.document.body).html("<h1>Schnelle Filter: Einstellungen</h1>" +
+                                   "<p><small>" +
+                                   "</small></p><p>Verschiebe E-Mails anhand ..." +
+                                   "  <p><input type=\"radio\" name=\"from\" value=\"mail\" id=\"filters-pref-from-mail\" " + (useFromName ? "" : "checked") + "><label for=\"filters-pref-from-mail\">der E-Mail-Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
+                                   "  <p><input type=\"radio\" name=\"from\" value=\"name\" id=\"filters-pref-from-name\" " + (useFromName ? "checked" : "") + "><label for=\"filters-pref-from-name\">des Absenders (z.B. <em>Julia Müller</em>)</label></p>" +
+                                   "</p><div id=\"filters-pref-address\"><p><small>" +
+                                   "  Willst du E-Mails einer Person mit einer ganz bestimmten E-Mail-Adresse verschieben, wähle <em>nur von dieser Adresse</em>.<br />" +
+                                   "  Wenn du willst, dass alle E-Mails von einer Webseite verschoben werden, wähle <em>von der ganzen Domain</em>. Das ist z.B. sinnvoll für Internetdienste wie Google oder Facebook." +
+                                   "</small></p><p>Verschiebe E-Mails ..." +
+                                   "  <p><input type=\"radio\" name=\"address\" value=\"mail\" id=\"filters-pref-address-mail\" " + (onlyDomain ? "" : "checked") + "><label for=\"filters-pref-address-mail\">nur von dieser Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
+                                   "  <p><input type=\"radio\" name=\"address\" value=\"domain\" id=\"filters-pref-address-domain\"" + (onlyDomain ? "checked" : "") + "><label for=\"filters-pref-address-domain\">von der ganzen Domain (z.B. <em>@facebook.com</em>)</label></p>" +
+                                   "</p></div><p>" +
+                                   "  <input type=\"button\" id=\"filters-pref-save\" value=\"Speichern\">" +
+                                   "</p>");
+  var address = $("#filters-pref-address", prefWindow.document);
+  function toggleAddressIfNeeded() {
+    if ($("#filters-pref-from-mail", prefWindow.document)[0].checked)
+      address.show();
+    else
+      address.hide();
+  }
+  toggleAddressIfNeeded();
+  $("#filters-pref-from-mail, #filters-pref-from-name", prefWindow.document).change(toggleAddressIfNeeded);
+  $("#filters-pref-save", prefWindow.document).click(prefSaveButtonClick(prefWindow));
+}
+
+/*
+ * Called whenever the "Save" button in "Preferences" is clicked
+ */
+function prefSaveButtonClick(prefWindow) {
+  return function() {
+    var onlyDomain = $("input:radio[name=address]:checked", prefWindow.document).val() == "domain";
+    var useFromName = $("input:radio[name=from]:checked", prefWindow.document).val() == "name";
+    GM_setValue("onlyDomain", onlyDomain);
+    GM_setValue("useFromName", useFromName);
+    prefWindow.close();
+    toast("Die Einstellungen wurden gespeichert.", "success", true);
+  };
 }
 
 /*
