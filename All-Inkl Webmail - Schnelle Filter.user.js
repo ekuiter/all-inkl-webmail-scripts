@@ -124,7 +124,9 @@ function addUIElements() {
       $("#filters-move-to").click(moveToButtonClick());
       $("#filters-move-to").after("<div class=\"item btn\" id=\"filters-move-to-new-folder\" style=\"float: left\">... in neuen Ordner</div>");
       $("#filters-move-to-new-folder").click(moveToNewFolderButtonClick);
-      $("#filters-move-to-new-folder").after("<div class=\"item btn pref\" id=\"filters-pref\" style=\"float: left\"><img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\"></div>");
+      $("#filters-move-to-new-folder").after("<div class=\"item btn pref\" id=\"filters-pref\" style=\"float: left\">" +
+                                             "  <img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\">" +
+                                             "</div>");
       $("#filters-pref").click(prefButtonClick);
     });
   });
@@ -141,11 +143,9 @@ function moveToButtonClick(folderInject) {
     }
     function proceed() {
       if (!folderInject) {
-        console.log("TEST");
         var folder = $("select#filters-folders").val();
       	if (!folder) return;
         var folderName = $("select#filters-folders :selected").text();
-        console.log("TEST", folder, folderName);
       } else {
         var folder = folderInject;
         var folderName = folder;
@@ -156,7 +156,8 @@ function moveToButtonClick(folderInject) {
       if (!useFromName && onlyDomain)
         from = "@" + from.split("@")[1];
       createMoveFilter(from, from, folder, function(data) {
-        toast(data.msg == "Der Filter wurde gespeichert." ? "E-Mails von <strong>" + from + "</strong> werden ab sofort in <strong>" + folderName + "</strong> verschoben." : data.msg, "success", true);
+        toast(data.msg == "Der Filter wurde gespeichert." ? "E-Mails von <strong>" + from +
+              "</strong> werden ab sofort in <strong>" + folderName + "</strong> verschoben." : data.msg, "success", true);
       });
     }
     if (currentMail.from) {
@@ -198,14 +199,19 @@ function prefButtonClick() {
   $(prefWindow.document.body).html("<h1>Schnelle Filter: Einstellungen</h1>" +
                                    "<p><small>" +
                                    "</small></p><p>Verschiebe E-Mails anhand ..." +
-                                   "  <p><input type=\"radio\" name=\"from\" value=\"mail\" id=\"filters-pref-from-mail\" " + (useFromName ? "" : "checked") + "><label for=\"filters-pref-from-mail\">der E-Mail-Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
-                                   "  <p><input type=\"radio\" name=\"from\" value=\"name\" id=\"filters-pref-from-name\" " + (useFromName ? "checked" : "") + "><label for=\"filters-pref-from-name\">des Absenders (z.B. <em>Julia Müller</em>)</label></p>" +
+                                   "  <p><input type=\"radio\" name=\"from\" value=\"mail\" id=\"filters-pref-from-mail\" " +(useFromName ? "" : "checked") +
+                                     "><label for=\"filters-pref-from-mail\">der E-Mail-Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
+                                   "  <p><input type=\"radio\" name=\"from\" value=\"name\" id=\"filters-pref-from-name\" " + (useFromName ? "checked" : "") +
+                                     "><label for=\"filters-pref-from-name\">des Absenders (z.B. <em>Julia Müller</em>)</label></p>" +
                                    "</p><div id=\"filters-pref-address\"><p><small>" +
                                    "  Willst du E-Mails einer Person mit einer ganz bestimmten E-Mail-Adresse verschieben, wähle <em>nur von dieser Adresse</em>.<br />" +
-                                   "  Wenn du willst, dass alle E-Mails von einer Webseite verschoben werden, wähle <em>von der ganzen Domain</em>. Das ist z.B. sinnvoll für Internetdienste wie Google oder Facebook." +
+                                   "  Wenn du willst, dass alle E-Mails von einer Webseite verschoben werden, wähle <em>von der ganzen Domain</em>." +
+                                   "  Das ist z.B. sinnvoll für Internetdienste wie Google oder Facebook." +
                                    "</small></p><p>Verschiebe E-Mails ..." +
-                                   "  <p><input type=\"radio\" name=\"address\" value=\"mail\" id=\"filters-pref-address-mail\" " + (onlyDomain ? "" : "checked") + "><label for=\"filters-pref-address-mail\">nur von dieser Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
-                                   "  <p><input type=\"radio\" name=\"address\" value=\"domain\" id=\"filters-pref-address-domain\"" + (onlyDomain ? "checked" : "") + "><label for=\"filters-pref-address-domain\">von der ganzen Domain (z.B. <em>@facebook.com</em>)</label></p>" +
+                                   "  <p><input type=\"radio\" name=\"address\" value=\"mail\" id=\"filters-pref-address-mail\" " + (onlyDomain ? "" : "checked") +
+                                     "><label for=\"filters-pref-address-mail\">nur von dieser Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
+                                   "  <p><input type=\"radio\" name=\"address\" value=\"domain\" id=\"filters-pref-address-domain\"" + (onlyDomain ? "checked" : "") +
+                                     "><label for=\"filters-pref-address-domain\">von der ganzen Domain (z.B. <em>@facebook.com</em>)</label></p>" +
                                    "</p></div><p>" +
                                    "  <input type=\"button\" id=\"filters-pref-save\" value=\"Speichern\">" +
                                    "</p>");
