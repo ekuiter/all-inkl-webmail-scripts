@@ -1,15 +1,17 @@
 // ==UserScript==
 // @name         All-Inkl Webmail - Schnelle Filter
 // @namespace    http://elias-kuiter.de/
-// @version      1.0
+// @version      1.1
 // @description	 Mit einem Klick Verschiebefilter erstellen.
 // @author       Elias Kuiter
 // @match        https://webmail.all-inkl.com/index.php?WID=*
 // @grant        GM_xmlhttpRequest
+// @grant		 unsafeWindow
 // ==/UserScript==
 
 var apiPath = "/ajax.php";
 var dependencies = ["aiwm", "aiwm.main", "aiwm.main.showMsg", "aiwm.core", "aiwm.core.WID"];
+var $ = unsafeWindow.$, aiwm = unsafeWindow.aiwm;
 var currentMail = { folder: null, mail: null };
 var LOGGER = function(data) { console.log(data) };
 var TOAST = function(response) { toast(data.msg, "success", true) };
@@ -63,7 +65,7 @@ function waitForDependencies() {
   runUntilTrue(function() {
     var dependenciesLoaded = true;
     for (var i = 0; i < dependencies.length; i++)
-      if (dependenciesLoaded && eval("typeof " + dependencies[i]) == "undefined")
+      if (dependenciesLoaded && eval("typeof unsafeWindow." + dependencies[i]) == "undefined")
         dependenciesLoaded = false;
     return dependenciesLoaded;
   }, initScript);
@@ -112,6 +114,11 @@ function addUIElements() {
         select += "<option value=\"" + folders[i].path + "\">" + folders[i].name + "</option>";
       $("#mail-toolbar .item.btn.refresh").after(select + "</select>");
       $("select#folders").after("<div class=\"item btn\" id=\"move-to\" style=\"float: left; margin-left: 8px\">Immer verschieben</div>");
+      // This...
+      //unsafeWindow.document.getElementById("move-to").addEventListener("click", moveToButtonClick, false);
+      // or this...
+      //$("#move-to")[0].addEventListener("click", moveToButtonClick, false);
+      // ...is supposed to work in Firefox/Greasemonkey. For some reason it doesn't. (In Chrome both works fine.) Solutions appreciated.
       $("#move-to").click(moveToButtonClick);
       $("#move-to").after("<input type=\"radio\" name=\"address\" value=\"mail\" id=\"mail\" style=\"float: left; margin: 12px 0 0 14px\" checked><label for=\"mail\" style=\"float: left; margin: 12px 0 0 6px\">nur diese Adresse</label>" +
                           "<input type=\"radio\" name=\"address\" value=\"domain\" id=\"domain\" style=\"float: left; margin: 12px 0 0 14px\"><label for=\"domain\" style=\"float: left; margin: 12px 0 0 6px\">die ganze Domain</label>")
