@@ -121,8 +121,10 @@ function addUIElements() {
       // or this...
       //$("#move-to")[0].addEventListener("click", moveToButtonClick, false);
       // ...is supposed to work in Firefox/Greasemonkey. For some reason it doesn't. (In Chrome both works fine.) Solutions appreciated.
-      $("#filters-move-to").click(moveToButtonClick);
-      $("#filters-move-to").after("<div class=\"item btn pref\" id=\"filters-pref\" style=\"float: left\"><img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\"></div>");
+      $("#filters-move-to").click(moveToButtonClick());
+      $("#filters-move-to").after("<div class=\"item btn\" id=\"filters-move-to-new-folder\" style=\"float: left\">... in neuen Ordner</div>");
+      $("#filters-move-to-new-folder").click(moveToNewFolderButtonClick);
+      $("#filters-move-to-new-folder").after("<div class=\"item btn pref\" id=\"filters-pref\" style=\"float: left\"><img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\"></div>");
       $("#filters-pref").click(prefButtonClick);
     });
   });
@@ -131,33 +133,56 @@ function addUIElements() {
 /*
  * Called whenever the "Move to ..." button is clicked
  */
-function moveToButtonClick() {
-  if (currentMail.folder == null || currentMail.mail == null) {
-    toast("Es ist keine E-Mail ausgewählt.", "error", true);
+function moveToButtonClick(folderInject) {
+  return function() {
+    if (currentMail.folder == null || currentMail.mail == null) {
+      toast("Es ist keine E-Mail ausgewählt.", "error", true);
+      return;
+    }
+    function proceed() {
+      if (!folderInject) {
+        console.log("TEST");
+        var folder = $("select#filters-folders").val();
+      	if (!folder) return;
+        var folderName = $("select#filters-folders :selected").text();
+        console.log("TEST", folder, folderName);
+      } else {
+        var folder = folderInject;
+        var folderName = folder;
+      }
+      var onlyDomain = GM_getValue("onlyDomain", false);
+      var useFromName = GM_getValue("useFromName", false);
+      var from = useFromName ? currentMail.fromName : currentMail.from;
+      if (!useFromName && onlyDomain)
+        from = "@" + from.split("@")[1];
+      createMoveFilter(from, from, folder, function(data) {
+        toast(data.msg == "Der Filter wurde gespeichert." ? "E-Mails von <strong>" + from + "</strong> werden ab sofort in <strong>" + folderName + "</strong> verschoben." : data.msg, "success", true);
+      });
+    }
+    if (currentMail.from) {
+      proceed();
+    } else {
+      getMailInfo(currentMail.folder, currentMail.mail, function(data) {
+        currentMail.from = data.from;
+        currentMail.fromName = data.from_name;
+        proceed();
+      });
+    }
+  };
+}
+
+/*
+ * Called whenever the "... new folder" button is clicked
+ */
+function moveToNewFolderButtonClick() {
+  var folderName = prompt("Gib den Namen des neuen Ordners ein. Unterordner mit / trennen:");
+  if (!folderName) {
+    toast("Du hast keinen Ordner eingegeben.", "error", true);
     return;
   }
-  function proceed() {
-    var folder = $("select#filters-folders").val();
-    if (!folder) return;
-    var folderName = $("select#filters-folders :selected").text();
-    var onlyDomain = GM_getValue("onlyDomain", false);
-    var useFromName = GM_getValue("useFromName", false);
-    var from = useFromName ? currentMail.fromName : currentMail.from;
-    if (!useFromName && onlyDomain)
-      from = "@" + from.split("@")[1];
-    createMoveFilter(from, from, folder, function(data) {
-      toast(data.msg == "Der Filter wurde gespeichert." ? "E-Mails von <strong>" + from + "</strong> werden ab sofort in <strong>" + folderName + "</strong> verschoben." : data.msg, "success", true);
-    });
-  }
-  if (currentMail.from) {
-    proceed();
-  } else {
-    getMailInfo(currentMail.folder, currentMail.mail, function(data) {
-      currentMail.from = data.from;
-      currentMail.fromName = data.from_name;
-      proceed();
-    });
-  }
+  createMailFolder(folderName, function() {
+    moveToButtonClick(folderName)();
+  });
 }
 
 /*
@@ -316,6 +341,33 @@ function getFolders(callback) {
     if (typeof callback == "function")
       callback(folders);
   });
+}
+
+/*
+ * Creates a folder
+ * name (string): Folder to be created (MyFolder)
+ * parent (string): Parent folder, may be path (MyDir/AnotherDir)
+ * container (bool): Whether the folder should contain other folders (true) or mails (false)
+ * callback (function): Called on success
+ */
+function createFolder(name, parent, container, callback) {
+  callApi("exec-maildir-new", {
+    name: name,
+    dir: btoa(parent),
+    container: container ? 1 : 0
+  }, callback);
+}
+
+/*
+ * Creates a mail folder
+ * name (string): Mailfolder to be created, may be path (MyDir/AnotherDir/MyFolder)
+ * callback (function): Called on success
+ */
+function createMailFolder(name, callback) {
+  var folderParts = name.split("/");
+  var parentFolders = folderParts.slice(0, -1).join("/");
+  var childFolder = folderParts.slice(-1)[0];
+  createFolder(childFolder, parentFolders, false, callback);
 }
 
 /*
