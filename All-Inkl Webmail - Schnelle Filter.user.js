@@ -104,6 +104,25 @@ function getCurrentMail() {
 }
 
 /*
+ * Adds one button to the UI
+ * to (string): the element to append to
+ * id (string): the new button's id
+ * content (string): The button's content
+ * clickHandler (function): The button's click event handler
+ */
+function appendButton(to, id, content, clickHandler, klass, style) {
+  if (!klass) klass = "";
+  if (!style) style = "";
+  $("#" + to).after("<div class=\"item btn " + klass + "\" id=\"" + id + "\" style=\"float: left; " + style + "\">" + content + "</div>");
+  // This...
+  //unsafeWindow.document.getElementById("#" + id).addEventListener("click", clickHandler, false);
+  // or this...
+  //$("#" + id)[0].addEventListener("click", clickHandler, false);
+  // ...is supposed to work in Firefox/Greasemonkey. For some reason it doesn't. (In Chrome both works fine.) Solutions appreciated.
+  $("#" + id).click(clickHandler);
+}
+
+/*
  * Adds buttons used to trigger the script's functionality
  */
 function addUIElements() {
@@ -114,23 +133,12 @@ function addUIElements() {
       var select = "<select id=\"filters-folders\" style=\"float: left; margin: 9px 0 0 20px\">";
       select += selectOptions(folders);
       $("#mail-toolbar .item.btn.refresh").after(select + "</select>");
-      $("select#filters-folders").after("<div class=\"item btn\" id=\"filters-move-to\" style=\"float: left\">Immer verschieben</div>");
-      // This...
-      //unsafeWindow.document.getElementById("move-to").addEventListener("click", moveToButtonClick, false);
-      // or this...
-      //$("#move-to")[0].addEventListener("click", moveToButtonClick, false);
-      // ...is supposed to work in Firefox/Greasemonkey. For some reason it doesn't. (In Chrome both works fine.) Solutions appreciated.
-      $("#filters-move-to").click(moveToButtonClick());
-      $("#filters-move-to").after("<div class=\"item btn\" id=\"filters-move-to-new-folder\" style=\"float: left\">... in neuen Ordner</div>");
-      $("#filters-move-to-new-folder").click(moveToNewFolderButtonClick);
-      $("#filters-move-to-new-folder").after("<div class=\"item btn\" id=\"filters-move-to-afterwards\" style=\"float: left\">Verschieben</div>");
-      $("#filters-move-to-afterwards").click(moveToAfterwardsButtonClick);
-      $("#filters-move-to-afterwards").after("<div class=\"item btn pref\" id=\"filters-pref\" style=\"float: left\">" +
-                                             "  <img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\">" +
-                                             "</div>");
-      $("#filters-pref").click(prefButtonClick);
-      $("#filters-pref").after("<div class=\"item btn\" id=\"filters-help\" style=\"float: left; margin-right: 20px\">?</div>");
-      $("#filters-help").click(helpButtonClick);
+      appendButton("filters-folders", "filters-move-to", "Immer verschieben", moveToButtonClick());
+      appendButton("filters-move-to", "filters-move-to-new-folder", "... in neuen Ordner", moveToNewFolderButtonClick);
+      appendButton("filters-move-to-new-folder", "filters-move-to-afterwards", "Verschieben", moveToAfterwardsButtonClick);
+      appendButton("filters-move-to-afterwards", "filters-how-many", "Wie viele?", howManyButtonClick);
+      appendButton("filters-how-many", "filters-pref", "<img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\">", prefButtonClick, "pref");
+      appendButton("filters-pref", "filters-help", "?", helpButtonClick, "", "margin-right: 20px");
     });
   });
 }
@@ -206,9 +214,10 @@ function moveToNewFolderButtonClick() {
 }
 
 /*
- * Called whenever the "Move to afterwards" button is clicked
+ * Searches for a sender, used by the moveToAfterwards and howMany buttons
+ * callback (function): called on success with the context and returned mailData
  */
-function moveToAfterwardsButtonClick() {
+function searchWithContext(callback) {
   var searchAll = GM_getValue("searchAll", false);
   withContext(null, function(context) {
     searchMails("FROM", context.from, searchAll ? "all" : "INBOX", function(mailData) {
@@ -217,13 +226,29 @@ function moveToAfterwardsButtonClick() {
               "Keine E-Mails von diesem Absender gefunden. Suche evtl. in den Einstellungen auf alle Ordner ausweiten?" :
               mailData.msg, "error", true);
       else
-        moveMails(mailData.mails, context.folder, function(data) {
-          toast(data.msg == "Die markierten E-Mails wurden verschoben." ? "<strong>" + mailData.pager_count_all +
-                "</strong> E-Mails von <strong>" + context.from + "</strong> wurden nach <strong>" +
-                context.folderName + "</strong> verschoben." : data.msg, "success", true);
-        });
+        callback(context, mailData);
     });
     toast("Durchsuche E-Mails ...", "info", true);
+  });
+}
+
+/*
+ * Called whenever the "Move to afterwards" button is clicked
+ */
+function moveToAfterwardsButtonClick() {
+  searchWithContext(function(context, mailData) {
+    moveMails(mailData.mails, context.folder, function(data) {
+      toast(data.msg == "Die markierten E-Mails wurden verschoben." ? "<strong>" + mailData.pager_count_all +
+            "</strong> E-Mails von <strong>" + context.from + "</strong> wurden nach <strong>" +
+            context.folderName + "</strong> verschoben." : data.msg, "success", true);
+    });
+  });
+}
+
+function howManyButtonClick() {
+  searchWithContext(function(context, mailData) {
+    toast("<strong>" + mailData.pager_count_all + "</strong> E-Mails von <strong>" + context.from + "</strong> " +
+          (GM_getValue("searchAll", false) ? "in allen Ordnern." : "im Posteingang."), "success", true);
   });
 }
 
@@ -467,8 +492,8 @@ function createMailFolder(name, callback) {
  */
 function searchMails(searchIn, searchString, folder, callback) {
   var options = {
-    mpp: 100000,
-    p: 1,
+    mpp: 100000, // mails per page (we're ignoring pagination here)
+    p: 1, // page
     s: "date",
     sd: "desc",
 	"search[alldirs]": folder == "all",
