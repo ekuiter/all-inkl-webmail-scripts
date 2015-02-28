@@ -132,13 +132,32 @@ function addUIElements() {
     getFolders(function(folders) {
       var select = "<select id=\"filters-folders\" style=\"float: left; margin: 9px 0 0 20px\">";
       select += selectOptions(folders);
-      $("#mail-toolbar .item.btn.refresh").after(select + "</select>");
-      appendButton("filters-folders", "filters-move-to", "Immer verschieben", moveToButtonClick());
-      appendButton("filters-move-to", "filters-move-to-new-folder", "... in neuen Ordner", moveToNewFolderButtonClick);
-      appendButton("filters-move-to-new-folder", "filters-move-to-afterwards", "Verschieben", moveToAfterwardsButtonClick);
-      appendButton("filters-move-to-afterwards", "filters-how-many", "Wie viele?", howManyButtonClick);
-      appendButton("filters-how-many", "filters-pref", "<img src=\"https://webmail.all-inkl.com/layout/img/mail-pref.png\" alt=\"Schnelle Filter: Einstellungen\">", prefButtonClick, "pref");
-      appendButton("filters-pref", "filters-help", "?", helpButtonClick, "", "margin-right: 20px");
+      $("#mail-toolbar .item.btn.refresh").after(select + "</select>");      
+      appendButton("filters-folders", "filters", "Schnelle Filter", function() {
+        aidropdown({
+          title: "E-Mails dieses Absenders:",
+          node: this,
+          valign: "after",
+          items: {
+            "move-to": "Immer verschieben",
+            "move-to-new-folder": "Immer verschieben (Neuer Ordner) ...",
+            seperator1: "", // ugly typo D:
+            "move-to-afterwards": "Jetzt verschieben (Ohne Filter)",
+            "how-many": "Wie viele E-Mails von diesem Absender?",
+            seperator2: "",
+            pref: "Einstellungen ...",
+            help: "Hilfe / Info ..."
+          },
+          fn : function(item) {
+            if (item === "move-to") moveToClick();
+            if (item === "move-to-new-folder") moveToNewFolderClick();
+            if (item === "move-to-afterwards") moveToAfterwardsClick();
+            if (item === "how-many") howManyClick();
+            if (item === "pref") prefClick();
+            if (item === "help") helpClick();
+          }
+        });
+      }, "margin-right: 20px");
     });
   });
 }
@@ -184,21 +203,19 @@ function withContext(folderInject, callback) {
  * Returns the function called whenever the "Move to ..." button is clicked
  * folderInject (string): Overwrite the selected folder with another one
  */
-function moveToButtonClick(folderInject) {
-  return function() {
-    withContext(folderInject, function(context) {
-      createMoveFilter(context.from, context.from, context.folder, function(data) {
-        toast(data.msg == "Der Filter wurde gespeichert." ? "E-Mails von <strong>" + context.from +
-              "</strong> werden ab sofort in <strong>" + context.folderName + "</strong> verschoben." : data.msg, "success", true);
-      });
+function moveToClick(folderInject) {
+  withContext(folderInject, function(context) {
+    createMoveFilter(context.from, context.from, context.folder, function(data) {
+      toast(data.msg == "Der Filter wurde gespeichert." ? "E-Mails von <strong>" + context.from +
+            "</strong> werden ab sofort in <strong>" + context.folderName + "</strong> verschoben." : data.msg, "success", true);
     });
-  };
+  });
 }
 
 /*
  * Called whenever the "... new folder" button is clicked
  */
-function moveToNewFolderButtonClick() {
+function moveToNewFolderClick() {
   var folderName = prompt("Gib den Namen des neuen Ordners ein. Unterordner mit / trennen:");
   if (!folderName) {
     toast("Du hast keinen Ordner eingegeben.", "error", true);
@@ -209,7 +226,7 @@ function moveToNewFolderButtonClick() {
       $("select#filters-folders").html(selectOptions(folders));
       $("select#filters-folders").val(folderName);
     });
-    moveToButtonClick(folderName)();
+    moveToClick(folderName);
   });
 }
 
@@ -235,7 +252,7 @@ function searchWithContext(callback) {
 /*
  * Called whenever the "Move to afterwards" button is clicked
  */
-function moveToAfterwardsButtonClick() {
+function moveToAfterwardsClick() {
   searchWithContext(function(context, mailData) {
     moveMails(mailData.mails, context.folder, function(data) {
       toast(data.msg == "Die markierten E-Mails wurden verschoben." ? "<strong>" + mailData.pager_count_all +
@@ -245,7 +262,7 @@ function moveToAfterwardsButtonClick() {
   });
 }
 
-function howManyButtonClick() {
+function howManyClick() {
   searchWithContext(function(context, mailData) {
     toast("<strong>" + mailData.pager_count_all + "</strong> E-Mails von <strong>" + context.from + "</strong> " +
           (GM_getValue("searchAll", false) ? "in allen Ordnern." : "im Posteingang."), "success", true);
@@ -255,17 +272,17 @@ function howManyButtonClick() {
 /*
  * Called whenever the "Preferences" button is clicked
  */
-function prefButtonClick() {  
+function prefClick() {  
   var onlyDomain = GM_getValue("onlyDomain", false);
   var useFromName = GM_getValue("useFromName", false);
   var searchAll = GM_getValue("searchAll", false);
-  var prefWindow = window.open("", "filters_pref", "width=600,height=650,resizable=yes");
+  var prefWindow = window.open("", "filters_pref", "width=650,height=650,resizable=yes");
   $(prefWindow.document.head).html("<style>" +
                                    "  * { font-family: Arial, sans-serif; } input[type=radio] { margin-right: 8px; }" +
                                    "</style>");
   $(prefWindow.document.body).html("<h2>Schnelle Filter: Einstellungen</h2>" +
                                    "<p><small>" +
-                                   "</small></p><h3>&quot;Immer verschieben&quot; / &quot;... in neuen Ordner&quot;</h3><p>Verschiebe E-Mails anhand ..." +
+                                   "</small></p><h3>Immer verschieben</h3><p>Verschiebe E-Mails anhand ..." +
                                    "  <p><input type=\"radio\" name=\"from\" value=\"mail\" id=\"filters-pref-from-mail\" " +(useFromName ? "" : "checked") +
                                      "><label for=\"filters-pref-from-mail\">der E-Mail-Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
                                    "  <p><input type=\"radio\" name=\"from\" value=\"name\" id=\"filters-pref-from-name\" " + (useFromName ? "checked" : "") +
@@ -279,8 +296,8 @@ function prefButtonClick() {
                                      "><label for=\"filters-pref-address-mail\">nur von dieser Adresse (z.B. <em>juliamueller@gmail.com</em>)</label></p>" +
                                    "  <p><input type=\"radio\" name=\"address\" value=\"domain\" id=\"filters-pref-address-domain\"" + (onlyDomain ? "checked" : "") +
                                      "><label for=\"filters-pref-address-domain\">von der ganzen Domain (z.B. <em>@facebook.com</em>)</label></p>" +
-                                   "</p><hr /></div><h3>&quot;Verschieben&quot;</h3><p><small>" +
-                                   "  Falls du alle E-Mails eines Absenders verschieben willst (ohne einen Filter anzulegen), wähle hier, ob nur E-Mails aus dem" +
+                                   "</p><hr /></div><h3>Jetzt verschieben / Wie viele E-Mails?</h3><p><small>" +
+                                   "  Falls du alle E-Mails eines Absenders verschieben oder zählen willst (ohne einen Filter anzulegen), wähle hier, ob nur E-Mails aus dem" +
                                    "  Posteingang verschoben werden sollen oder auch aus anderen Ordnern." +
                                    "</small></p><p>Verschiebe E-Mails ..." +
                                    "  <p><input type=\"radio\" name=\"search\" value=\"inbox\" id=\"filters-pref-search-inbox\" " + (searchAll ? "" : "checked") +
@@ -319,29 +336,33 @@ function prefSaveButtonClick(prefWindow) {
 /*
  * Called whenever the "Help" button is clicked
  */
-function helpButtonClick() {
-  var helpWindow = window.open("", "filters_help", "width=750,height=550,resizable=yes");
+function helpClick() {
+  var helpWindow = window.open("", "filters_help", "width=750,height=650,resizable=yes");
   $(helpWindow.document.head).html("<style>" +
                                    "  * { font-family: Arial, sans-serif; }" +
                                    "</style>");
-  $(helpWindow.document.body).html("<h2>Schnelle Filter: Hilfe</h2>" +
+  $(helpWindow.document.body).html("<h2>Schnelle Filter: Hilfe / Info</h2>" +
                                    "<p>" +
                                    "  Dieses Userscript hilft dir beim Erstellen von Filtern und Verschieben von E-Mails. Es fügt mehrere Funktionen " +
                                    "  zur Hauptsymbolleiste von All-Inkl Webmail hinzu." +
                                    "</p><p>" +
                                    "  Userscript auf GitHub: <a href=\"https://github.com/ekuiter/all-inkl-webmail-scripts\" target=\"_blank\">" +
                                    "  ekuiter/all-inkl-webmail-scripts</a><br />Entwickler: <a href=\"http://elias-kuiter.de\" target=\"_blank\">Elias Kuiter</a>" +
-                                   "</p><h3>&quot;Immer verschieben&quot;</h3><p>" +
-                                   "  Dieser Button erstellt einen Filter zur gerade ausgewählten E-Mail, der neu eintreffende E-Mails des aktuellen Absenders" +
-                                   "  automatisch in einen Ordner verschiebt. Dieser Ordner kann im Auswahlmenü links von den Buttons ausgewählt werden." +
-                                   "</p><h3>&quot;... in neuen Ordner&quot;</h3><p>" +
+                                   "</p><h3>Immer verschieben</h3><p>" +
+                                   "  Diese Funktion erstellt einen Filter zur gerade ausgewählten E-Mail, der neu eintreffende E-Mails des aktuellen Absenders" +
+                                   "  automatisch in einen Ordner verschiebt. Dieser Ordner kann im Auswahlmenü links vom Button \"Schnelle Filter\" ausgewählt werden." +
+                                   "</p><h3>Immer verschieben (Neuer Ordner) ...</h3><p>" +
                                    "  Wie &quot;Immer verschieben&quot;, allerdings muss der Ordner nicht ausgewählt, sondern beim Anklicken in ein Dialogfenster" +
                                    "  eingetragen werden. Der eingetragene Ordner wird dann angelegt. (Der Ordner darf Slashes enthalten, um Unterordner zu kennzeichnen:" +
                                    "  z.B. <em>Social/Facebook</em>, die Unterordner werden ggf. erstellt.)" +
-                                   "</p><h3>&quot;Verschieben&quot;</h3><p>" +
+                                   "</p><h3>Jetzt verschieben (Ohne Filter)</h3><p>" +
                                    "  Verschiebt alle E-Mails des Absenders der gerade ausgewählten E-Mail (ohne einen Filter anzulegen) in den Ordner," +
                                    "  der im Auswahlmenü ausgewählt ist. Ob nur E-Mails aus dem Posteingang oder aus allen Ordnern verschoben werden sollen," +
                                    "  kann in den Einstellungen angepasst werden." +
+                                   "</p><h3>Wie viele E-Mails von diesem Absender?</h3><p>" +
+                                   "  Zählt alle E-Mails des Absenders der gerade ausgewählten E-Mail und zeigt das Ergebnis an. Ob nur E-Mails aus dem Posteingang" +
+                                   "  oder aus allen Ordnern einbezogen werden sollen, kann in den Einstellungen angepasst werden. Diese Funktion kann man z.B. als Hilfe" +
+                                   "  benutzen, um einzuschätzen, ob sich ein Filter für einen Absender lohnt." +
                                    "</p>");
 }
 
