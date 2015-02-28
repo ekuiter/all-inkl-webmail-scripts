@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         All-Inkl Webmail - Schnelle Filter
 // @namespace    http://elias-kuiter.de/
-// @version      1.2
+// @version      1.3
 // @description	 Mit einem Klick Verschiebefilter erstellen und mehr.
 // @author       Elias Kuiter
 // @downloadURL  https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Schnelle%20Filter.user.js
@@ -14,11 +14,22 @@
 // ==/UserScript==
 
 var apiPath = "/ajax.php";
+var registerUrl = "http://dev.elias-kuiter.de/all-inkl-webmail-scripts/schnelle_filter_register.php";
 var dependencies = ["aiwm", "aiwm.main", "aiwm.main.showMsg", "aiwm.core", "aiwm.core.WID"];
 var $ = unsafeWindow.$, aiwm = unsafeWindow.aiwm;
 var currentMail = { folder: null, mail: null };
 var LOGGER = function(data) { console.log(data) };
 var TOAST = function(data) { toast(data.msg, "success", true) };
+
+if (!GM_getValue("installed", false)) {
+  var registerAllowed = confirm("Vielen Dank, dass du \"Schnelle Filter\" installiert hast!\n" +
+"Du findest das Userscript in der Hauptsymbolleiste der E-Mail-Ansicht.\n\n" +
+"Ist es in Ordnung, wenn \"Schnelle Filter\" jetzt einmalig an den Entwickler meldet, dass du es installiert hast?\n" +
+"Es werden keine persönlichen Daten übertragen oder gespeichert. Wenn du das nicht möchtest, klicke auf \"Abbrechen\".");
+  if (registerAllowed)
+    GM_xmlhttpRequest({ method: "GET", url: registerUrl });
+  GM_setValue("installed", true);
+}
 
 waitForDependencies();
 
