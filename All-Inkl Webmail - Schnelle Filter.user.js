@@ -199,6 +199,7 @@ function moveToNewFolderButtonClick() {
   createMailFolder(folderName, function() {
     getFolders(function(folders) {
       $("select#filters-folders").html(selectOptions(folders));
+      $("select#filters-folders").val(folderName);
     });
     moveToButtonClick(folderName)();
   });
