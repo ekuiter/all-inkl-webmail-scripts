@@ -1,9 +1,11 @@
 // ==UserScript==
 // @name         All-Inkl Webmail - Schnelle Filter
 // @namespace    http://elias-kuiter.de/
-// @version      1.1
-// @description	 Mit einem Klick Verschiebefilter erstellen.
+// @version      1.2
+// @description	 Mit einem Klick Verschiebefilter erstellen und mehr.
 // @author       Elias Kuiter
+// @downloadURL  https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Schnelle%20Filter.user.js
+// @updateURL    https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Schnelle%20Filter.user.js
 // @match        https://webmail.all-inkl.com/index.php?WID=*
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
