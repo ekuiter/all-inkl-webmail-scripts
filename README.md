@@ -7,7 +7,7 @@ Dieses Skript hilft beim schnellen Erstellen von Filtern, um E-Mails von bestimm
 
 So kann man (in Anlehnung an Outlook.com) zu jeder E-Mail mit einem Klick einen Filter erstellen, der Mails dieses Absenders ab sofort verschiebt. Den Zielordner kann man entweder vorab auswählen oder auch direkt neu erstellen. Außerdem kann man alle E-Mails eines Absenders rückwirkend verschieben (also diejenigen, die nicht von einem neuen Filter betroffen sind).
 
-Das Skript fügt neue Bedienelemente zur Symbolleiste im E-Mail-Bereich hinzu (links vom Suchfeld). Ein Klick auf den `?`-Button verrät mehr über die Bedienung des Skriptes.
+Das Skript fügt neue Bedienelemente zur Symbolleiste im E-Mail-Bereich hinzu (links vom Suchfeld). Ein Klick auf den `Schnelle Filter`-Button und anschließend `Hilfe / Info ...` verrät mehr über die Bedienung des Skriptes.
 
 **Installation**: Wenn [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) installiert ist, einfach hier klicken: https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Schnelle%20Filter.user.js
 
