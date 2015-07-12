@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         All-Inkl Webmail - Ordner-Mail-Anzahl
 // @namespace    http://elias-kuiter.de/
-// @version      1.0
+// @version      1.1
 // @description	 Blendet Anzahl der Mails auch neben Ordnern ein, die selbst keine Mails enthalten.
 // @author       Elias Kuiter
 // @match        https://webmail.all-inkl.com/index.php?WID=*
 // @grant        none
+// @downloadURL  https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Ordner-Mail-Anzahl.user.js
+// @updateURL    https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Ordner-Mail-Anzahl.user.js
 // ==/UserScript==
 
 var parentFolderNodes = "#mail-dirlist .item.folder.container";
