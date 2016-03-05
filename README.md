@@ -2,6 +2,17 @@
 
 Dieses Repository enthält einige Skripte, um das Webmail-Interface von All-Inkl / KAS in seiner Bedienung anzupassen. Die Skripte sind im Folgenden kurz aufgeführt & erläutert.
 
+### Favicon-Anzeige
+
+![Favicon-Anzeige](https://raw.githubusercontent.com/ekuiter/all-inkl-webmail-scripts/img/favicon.jpg)
+
+Dieses Skript blendet im Tab-Symbol ein, wie viele ungelesene E-Mails im Postfach liegen. Die Anzeige aktualisiert sich selbstständig, wenn neue E-Mails ankommen. Dieses Skript ist vor allem dann praktisch, wenn man den Webmail-Tab im Google Chrome anheftet.
+
+**Installation**: Wenn [Tampermonkey](https://chrome.google.com/webstore/detail/tampermonkey/dhdgffkkebhmkfjojejmpbldmpobfkfo) bzw. [Greasemonkey](https://addons.mozilla.org/de/firefox/addon/greasemonkey/) installiert ist, einfach hier klicken: https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Favicon-Anzeige.user.js
+
+Funktioniert im Chrome mit Tampermonkey (Versionen: 48/3.12).
+Nicht getestet im Firefox.
+
 ### Schnelle Filter
 
 ![Schnelle Filter](https://raw.githubusercontent.com/ekuiter/all-inkl-webmail-scripts/img/filters.jpg)

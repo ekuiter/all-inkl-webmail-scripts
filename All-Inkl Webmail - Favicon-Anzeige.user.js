@@ -1,12 +1,14 @@
 // ==UserScript==
 // @name         All-Inkl Webmail - Favicon-Anzeige
 // @namespace    http://elias-kuiter.de/
-// @version      1.0
+// @version      1.1
 // @description	 Zeigt die Anzahl ungelesener Mails im Tab-Symbol an.
 // @author       Elias Kuiter
 // @match        https://webmail.all-inkl.com/index.php?WID=*
 // @grant        none
-// @require      http://www.xarg.org/download/pnglib.js
+// @downloadURL  https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Favicon-Anzeige.user.js
+// @updateURL    https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/All-Inkl%20Webmail%20-%20Favicon-Anzeige.user.js
+// @require      https://github.com/ekuiter/all-inkl-webmail-scripts/raw/master/lib/pnglib.js
 // ==/UserScript==
 
 /*
