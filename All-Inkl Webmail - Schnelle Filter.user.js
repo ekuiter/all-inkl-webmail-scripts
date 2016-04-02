@@ -11,6 +11,7 @@
 // @grant        GM_getValue
 // @grant        GM_setValue
 // @grant        unsafeWindow
+// @connect      self
 // ==/UserScript==
 
 var apiPath = "/ajax.php";
