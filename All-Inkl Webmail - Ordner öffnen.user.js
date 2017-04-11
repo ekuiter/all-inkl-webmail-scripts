@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         All-Inkl Webmail - Ordner öffnen
 // @namespace    http://elias-kuiter.de/
-// @version      1.1
+// @version      1.2
 // @description	 Klappt alle Webmail-Ordner automatisch aus.
 // @author       Elias Kuiter
 // @match        https://webmail.all-inkl.com/index.php?WID=*
@@ -11,12 +11,13 @@
 // ==/UserScript==
 
 var parentFolderNodes = "#mail-dirlist .item.folder.container";
-var invisibleFolderNodes = parentFolderNodes + " ul";
+var ignoredNodes = [/*insert folder title strings that will NOT be opened*/];
 
 function openFolders() {
-  var nodes = document.querySelectorAll(invisibleFolderNodes);
+  var nodes = document.querySelectorAll(parentFolderNodes);
   for (var i = 0; i < nodes.length; i++)
-    display(nodes[i]);
+    if (ignoredNodes.indexOf(nodes[i].title) === -1)
+        display(nodes[i].children[1]);
 }
 
 function display(node) {
