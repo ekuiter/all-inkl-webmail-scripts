@@ -15,7 +15,7 @@
 // ==/UserScript==
 
 var apiPath = "/ajax.php";
-var registerUrl = "http://dev.elias-kuiter.de/all-inkl-webmail-scripts/schnelle_filter_register.php";
+var registerUrl = "http://kuiter.info/all-inkl-webmail-scripts/schnelle_filter_register.php";
 var dependencies = ["aiwm", "aiwm.main", "aiwm.main.showMsg", "aiwm.core", "aiwm.core.WID"];
 var $ = unsafeWindow.$, aiwm = unsafeWindow.aiwm;
 var currentMail = { folder: null, mail: null };
